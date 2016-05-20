@@ -1,0 +1,4 @@
+# LS-SVM
+
+resources available here: http://www.esat.kuleuven.be/sista/lssvmlab/
+
