@@ -15,6 +15,10 @@
 \usepackage{subcaption}
 \usepackage{wrapfig}
 \usepackage[numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{listings}
+\lstset{
+    literate={~} {$\sim$}{1}
+}
 \begin{document}
 
 \include{title}
@@ -229,9 +233,16 @@ The speed of execution can be estimated using the tic/toc commands in
 matlab. The results in execution time in seconds are reported in table
 \ref{tab:computing_param}. It would seem on this small experiment,
 that the simplex is faster at moving in the search space of $\gamma$
-and $\sigma^2$ than gridsearch. The global optimisation algorithm
-coupled simulated annealing (csa) converges to a minimum faster than
-the alternative randomized directed search (ds) algorithm.
+and $\sigma^2$ than gridsearch. This makes sense in light of the
+functioning of these optimisation functions inner-working. Whereas
+\emph{gridsearch} locates a minimum by creating a grid of parameter
+values, \emph{simplex} finds a minimum from a given starting
+value. Hence the search is faster (though less exhaustive) using
+\emph{simplex}
+
+The global optimisation algorithm coupled simulated annealing (csa)
+converges to a minimum faster than the alternative randomized directed
+search (ds) algorithm.
 
 \begin{table}[H]
   \centering
@@ -269,9 +280,63 @@ the alternative randomized directed search (ds) algorithm.
 
 In this section, we investigate the use of the bayes rule for the
 tuning and analysis of function approximation (with a quick incursion
-in the classification task). The dataset is the same as in the
-previous section (sum of cosines).
+in the classification task). Originally introduced within the context
+of VC-theory, support vector machines have little to do with a
+probabilistic point of view. The introduction of kernel functions such
+as RBF however create a link with that world.
 
+An interesting contribution of the introduction of such a
+probabilistic setting is related to the inference of the parameters,
+critical to building a coherent SVM model. As seen before, one way to
+deal with their estimation is via the use of a validation set. Here,
+we will see that the parameters can be deduced through the application
+of the Bayes rule within a hierarchical model. Here we will work with
+a RBF kernel function, hence we will have 3 levels of inference.
+
+Using the same dataset as previously (sum of cosines), we can build
+our model using the \emph{bay\_optimize} function. Note that the
+examples in the assignment work on the training set, but there is no
+real need to limit them. Within this bayesian framework, we can
+estimate all the parameters without the need to check them through
+validation sets. 
+
+\begin{lstlisting}
+[~,alpha,b] = bay_optimize({X,Y,'f',gam,sig2}, 1);
+[~,gam] = bay_optimize({X,Y,'f',gam,sig2},2);
+[~,sig2] = bay_optimize({X,Y,'f',gam,sig2},3);
+sig2e = bay_errorbar({X,Y,'f',gam,sig2},'figure');
+\end{lstlisting}
+
+The last line of code produces the figure \ref{fig:sumcos_bay1} on
+which it is possible to visualize at least 2 key things. Firstly, that
+the modelling performed very well, and secondly, that it is possible
+to estimate the confidence interval of our regression in a
+straightforward manner.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{sumcos_bay1.pdf}
+    \caption{Bayesian parameter estimation and resulting model with error bars}
+    \label{fig:sumcos_bay1}
+\end{figure}
+
+A good way to visualize the dependence between the three levels of
+inference of our model is to realize the connection that each level
+has with the next one. Indeed, the so-called evidence bit of the bayes
+rule of level 1 corresponds to the likelihood bit of level 2, whose
+evidence is itself the likelihood of level 3.
+
+The next figure \ref{fig:bayes_iris} reports the results from the
+classification of the iris dataset. For this, the function
+\emph{bay\_modoutClass} was used with an array of different
+$\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{bayes_iris.pdf}
+    \caption{Bayesian parameter estimation and resulting model with error bars}
+    \label{fig:bayes_iris}
+\end{figure}
 
 \section{Robust regression}
 
