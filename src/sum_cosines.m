@@ -108,16 +108,18 @@ export_fig('hyperparam_tuning.pdf');
 
 % Bayesian framework
 sig2 = 0.5; gam = 10;
-criterion_L1 = bay_lssvm({Xtrain,Ytrain,'f',gam,sig2},1);
-criterion_L2 = bay_lssvm({Xtrain,Ytrain,'f',gam,sig2},2);
-criterion_L3 = bay_lssvm({Xtrain,Ytrain,'f',gam,sig2},3);
+criterion_L1 = bay_lssvm({X,Y,'f',gam,sig2},1);
+criterion_L2 = bay_lssvm({X,Y,'f',gam,sig2},2);
+criterion_L3 = bay_lssvm({X,Y,'f',gam,sig2},3);
 
 %
 gam=10; sig2=0.05;
-[~,alpha,b] = bay_optimize({Xtrain,Ytrain,'f',gam,sig2}, 1);
-[~,gam] = bay_optimize({Xtrain,Ytrain,'f',gam,sig2},2);
-[~,sig2] = bay_optimize({Xtrain,Ytrain,'f',gam,sig2},3);
-sig2e = bay_errorbar({Xtrain,Ytrain,'f',gam,sig2},'figure');
+[~,alpha,b] = bay_optimize({X,Y,'f',gam,sig2}, 1);
+[~,gam] = bay_optimize({X,Y,'f',gam,sig2},2);
+[~,sig2] = bay_optimize({X,Y,'f',gam,sig2},3);
+sig2e = bay_errorbar({X,Y,'f',gam,sig2},'figure');
+
+export_fig('sumcos_bay1.pdf');
 
 load '../datasets/iris';
 figure('Color', [1 1 1]);
@@ -133,4 +135,58 @@ for gam=gam_list
     end
 end
 
-export_fig('iris_bayes.pdf');
+export_fig('bayes_iris.pdf');
+
+% ARD
+X = 10.*rand(100,3)-3;
+Y = cos(X(:,1)) + cos(2*(X(:,1))) +0.3.*randn(100,1);
+[selected, ranking, costs2] = bay_lssvmARD({X,Y,'class', 100, 0.1});
+
+% robust regression
+X = (-10:0.2:10)';
+Y = cos(X) + cos(2*X) + 0.1.*rand(size(X));
+Y_nn = Y;
+
+outliers_x = [15 17 19 41 44 46];
+
+out = [15 17 19];
+Y(out) = 0.7 + 0.3*rand(size(out));
+outliers_y = Y(out);
+out = [41 44 46];
+Y(out) = 1.5 + 0.2*rand(size(out));
+outliers_y = [outliers_y' Y(out)'];
+
+weight_functions = {'whuber', 'whampel', 'wlogistic', 'wmyriad'};
+model = initlssvm(X,Y,'f',[],[],'RBF_kernel');
+
+% different noise impact on non robut lssvm
+figure('Color', [1 1 1]);
+sig2 = 0.1; gam = 100;
+subplot(1,2,1);
+[alpha, b] = trainlssvm({X, Y_nn, 'f', gam, sig2, 'RBF_kernel'});
+plotlssvm({X, Y_nn, 'f', gam, sig2, 'RBF_kernel'},{alpha, b});
+subplot(1,2,2);
+[alpha, b] = trainlssvm({X, Y, 'f', gam, sig2, 'RBF_kernel'});
+plotlssvm({X, Y, 'f', gam, sig2, 'RBF_kernel'},{alpha, b});
+hold on;
+plot(X(outliers_x), outliers_y, 'r*');
+
+export_fig('robust_outliers.pdf');
+
+figure('Color', [1 1 1]);
+for i=1:4
+    wFun = weight_functions{i};
+    model = initlssvm(X,Y,'f',[],[],'RBF_kernel');
+    model = tunelssvm(model,'simplex','rcrossvalidatelssvm',{10,'mae'},wFun);
+    model = robustlssvm(model);
+    subplot(2,2,i);
+    plotlssvm(model);
+end
+
+for i=1:4
+    subplot(2,2,i);
+    hold on;
+    plot(X(outliers_x), outliers_y, 'r*');
+end
+
+export_fig('bayes_robust.pdf');
