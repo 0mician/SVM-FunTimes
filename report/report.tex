@@ -31,10 +31,10 @@ The analysis presented in this report was produced for the class of
 ``Support Vector Machines: methods and applications'' (Spring 2016) at
 KU Leuven. The goal is to display understanding of the techniques and
 of their practical use. This second report focuses on function
-estimation and time series prediction using SVM, and Least-Squares SVM
-(LS-SVM). The implementation was done using the MatLab software
-(v2015a) and the libraries for LS-SVM developed at KU Leuven
-\footnote{http://www.esat.kuleuven.be/sista/lssvmlab/}.
+estimation and time series prediction using SVM, and particularly
+Least-Squares SVM (LS-SVM). The implementation was done using the
+MatLab software (v2015a) and the libraries for LS-SVM developed at KU
+Leuven \footnote{http://www.esat.kuleuven.be/sista/lssvmlab/}.
 
 \section{Support Vector Machine for regression}
 
@@ -340,11 +340,91 @@ $\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$
 
 \section{Robust regression}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{robust_outliers.pdf}
+    \caption{Robust vs. non-robust model}
+    \label{fig:robust_ouliers}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{bayes_robust.pdf}
+    \caption{Bayesian robust function estimation}
+    \label{fig:bayes_robust}
+\end{figure}
+
 \section{Applications}
 
 \subsection{Time-series Prediction}
 
+The dataset we work with in this last section represents a time serie
+collected from an experiment with a laser
+\footnote{http://www-psych.stanford.edu/~andreas/Time-Series/SantaFe.html}). It
+has been split into a training set and a test set, as illustrated on
+figure \ref{fig:santa_fe}. The blue part, will be used to train our
+model with the goal of predicting the red part.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{santafe_dataset.pdf}
+    \caption{Time serie (santa fe dataset)}
+    \label{fig:santa_fe}
+\end{figure}
+
+As suggested in the exercise, I optimized the kernel parameter
+$\sigma^2$ and the hyperparameter $\gamma$ via the use of
+\emph{tunelssvm} with crossvalidation on the training set. Then I
+proceeded to determine what would be the best \emph{order} to use by
+looking at the mean squared error between the predictions and the
+actual value of the test set via a systematic model building over a
+range of possible values (see figure \ref{fig:santa_prediction} for
+results):
+
+\begin{lstlisting}
+mse_error = zeros(20,1); i = 1;
+for order=5:5:100
+    X=windowize(Z,1:(order+1));
+    Y=X(:,end); X=X(:,1:order);
+
+    [gam,sig2]=tunelssvm({X,Y,'f',[],[],'RBF_kernel'},'simplex','crossvalidatelssvm',{10,'mse'});
+    [alpha,b]=trainlssvm({X,Y,'f',gam,sig2});
+
+    horizon = length(Ztest)-order;
+    Zpt = predict({X, Y, 'f', gam, sig2},Ztest(1:order), horizon);
+    mse_error(i) = sqrt(mse(Zpt-Ztest(order+1:end)));
+    i = i + 1;
+end
+
+% building best model based on order selection
+order=60;
+X=windowize(Z,1:(order+1));
+Y=X(:,end); X=X(:,1:order);
+[gam,sig2]=tunelssvm({X,Y,'f',[],[],'RBF_kernel'},'simplex','crossvalidatelssvm',{10,'mse'});
+[alpha,b]=trainlssvm({X,Y,'f',gam,sig2});
+horizon = length(Ztest)-order;
+Zpt = predict({X, Y, 'f', gam, sig2},Ztest(1:order), horizon);
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.40]{santafe_prediction.pdf}
+    \caption{Left: MSE for different values of order, right: prediction}
+    \label{fig:santa_prediction}
+\end{figure}
+
 \subsection{Santa Fe Laser Dataset}
+
+In light of the previous results, one can wonder whether it is
+possible to obtain even better prediction using approaches seen
+previously. In this section, inspired by the ESAT tutorial, I show
+that indeed it is possible to introduce a refinement through the
+automatic relevance determination.
+
+Note that there is a significant computational cost associated to the
+method (as implemented through the function \emph{bay\_lssvmARD}). The
+run took over half an hour to complete on my laptop. The previous
+method returned almost immediately.
 
 \bibliographystyle{ieeetr} \bibliography{bib-db}
 \end{document}
