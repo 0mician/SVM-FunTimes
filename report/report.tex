@@ -31,7 +31,7 @@ The analysis presented in this report was produced for the class of
 ``Support Vector Machines: methods and applications'' (Spring 2016) at
 KU Leuven. The goal is to display understanding of the techniques and
 of their practical use. This second report focuses on function
-estimation and time series prediction using SVM, and particularly
+estimation and time-series prediction using SVM, and particularly
 Least-Squares SVM (LS-SVM). The implementation was done using the
 MatLab software (v2015a) and the libraries for LS-SVM developed at KU
 Leuven \footnote{http://www.esat.kuleuven.be/sista/lssvmlab/}.
@@ -64,30 +64,33 @@ save('sinc.mat');
 
 \subsection{Analysis}
 
-Here we investigate the effect of fixing the amount of different
-settings on the function estimation:
+I investigated the effect of fixing the amount of different settings
+on the function estimation, here is their descriptions:
 
 \begin{itemize}
-\item $\epsilon$ or \emph{e} controls the loss function
-\item $\sigma$ controls the bandwidth of the RBF kernel
-\item the polynomial degree (1 means linear kernel)
+\item $\epsilon$ or \emph{e} is the $\epsilon$-sensitive loss
+  function;
+\item $\sigma^2$ controls the bandwidth of the RBF kernel;
+\item the polynomial kernel degree (1 means linear kernel);
 \item $\gamma$ or \emph{bound} controls the amount of regularization
-  (hence the smoothness of the decision boundary)
+  (hence the smoothness of the decision boundary).
 \end{itemize}
 
-For the linear and cubic generated dataset, I got good results with
-polynomial kernel of degree 1 and 3 respectively. In general, the RBF
-kernel worked well on all the dataset.
+For the linear and cubic generated dataset, as expected I got good
+results with polynomial kernel of degree 1 and 3 respectively. In
+general, the RBF kernel worked well on all the dataset as they could
+be tuned to fit well the data.
 
 I did an extensive survey of the parameters for the first linear
-dataset. On that particular set, the linear kernel seem to have
-performed the best. Even for extremely low $\epsilon$ (eg
-$\epsilon=0.005$), the number of support vectors needed to describe
-the classifier is equal to two. Another obvious advantage of that
-kernel was that no wiggle artefact appeared, in contrast with the
-other more flexible kernels. Note that this performance was achievable
-using the RBF kernel too, using a very large $\sigma$ (as large values
-of that parameter tend to make decision boundaries linear).
+dataset (see table \ref{table:dataset_lin}). On that particular set,
+the linear kernel seem to have performed the best. Even for extremely
+low $\epsilon$ (eg $\epsilon=0.005$), the number of support vectors
+needed to describe the classifier is equal to two. Another obvious
+advantage of that kernel was that no wiggle artefact appeared, in
+contrast with the other more flexible kernels. Note that this
+performance was achievable using the RBF kernel too, using a very
+large $\sigma$ (as large values of that parameter tend to make
+decision boundaries linear).
 
 \begin{table}[H]
   \centering
@@ -113,17 +116,23 @@ error is allowed in the model, this makes sense. The same remark goes
 for the e-value, which controls the loss function. If this value is
 small, the model doesn't allow for a large margin.
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[scale=.40]{two_gaussians.pdf}
-%     %\caption{Two gaussians classification}
-%     \label{fig:two_gaussians}
-% \end{figure}
+The sparsity property is directly related to the kernel matrix of the
+dual formulation of the SVM, in which the support vectors can be
+found. Often that matrix will be sparse and fewer support vectors will
+be needed than the number of datapoints n. The kernel matrix is
+n-by-n, hence potentially, you could have situations where n support
+vectors are needed, a very ``not'' sparse situation. 
 
+The SVM regression formulated in the dual model using the lagrangians
+is akin to non-parametric modelling. In that sense, it is very
+different from least-squares fit.
+
+\newpage
 \section{Sum of Cosines}
 
 I started by investigating the regression of the function with a given
-$\sigma^2$ value of 0.1, as illustrated by the following code:
+$\sigma^2$ value of 0.1. The results are visually reported on figure
+\ref{fig:sumcos1}, and were produced by the following code:
 
 \begin{lstlisting}
 gam_list = [1000, 100, 10, 1];
@@ -142,8 +151,6 @@ for i = 1:4
 end
 \end{lstlisting}
 
-The results are visually reported on figure \ref{fig:sumcos1}
-
 \begin{figure}[H]
     \centering
     \includegraphics[scale=.40]{sumcos1.pdf}
@@ -157,6 +164,7 @@ $\gamma$ using similar code. The visual results can be seen on figure
 \ref{fig:sumcos2}
 
 \begin{figure}[H]
+  \vspace{-50pt}
     \centering
     \includegraphics[scale=.40]{sumcos2.pdf}
     \caption{Function estimation for various values of $\sigma^2$ (fixed
@@ -170,12 +178,12 @@ estimation. Although the SVM formulation is convex, and thus has a
 single solution, when we start exploring hyperparameter space, the
 problem is no more convex. 
 
-I thought that there would not be a single pair, and decided to verify
-this by computing and visualizing the error surface consisting of
-systematic evaluation between the estimated Y for a given pair of
-$\sigma^2$ and $\gamma$ and the true Y (known in our case given that
-we are working with a synthetic dataset.) Here is the code I used for
-this part:
+As such, I thought that there would not be a single pair, and decided
+to verify this by computing and visualizing the error surface
+consisting of systematic evaluation between the estimated Y for a
+given pair of $\sigma^2$ and $\gamma$ and the true Y (known in our
+case given that we are working with a synthetic dataset.) Here is the
+code I used for this part:
 
 \begin{lstlisting}
 gam_list = logspace(-2,2,100); sig2_list = logspace(-2,1,100);
@@ -203,14 +211,18 @@ The result of the parameter space exploration can be seen on figure
 \ref{fig:sumcos_surf}. One can recognize that there is indeed no
 single best pair of parameters to obtain. In general a large gamma
 will reap better results in lowering the error for this synthetic
-dataset. For larger $\gamma$, the value of $\sigma^2$ can be larger.
+dataset. It also seem that for larger $\gamma$, the value of
+$\sigma^2$ can be increased too.
 
 \begin{figure}[H]
+  \vspace{-60pt}
     \centering
     \includegraphics[scale=.40]{sumcos_surf.pdf}
     \caption{Exploration of parameter space effect on the function estimation}
     \label{fig:sumcos_surf}
 \end{figure}
+
+
 
 \section{Hyper-parameter Tuning}
 
@@ -232,17 +244,26 @@ discovered in the previous section.
 The speed of execution can be estimated using the tic/toc commands in
 matlab. The results in execution time in seconds are reported in table
 \ref{tab:computing_param}. It would seem on this small experiment,
-that the simplex is faster at moving in the search space of $\gamma$
-and $\sigma^2$ than gridsearch. This makes sense in light of the
-functioning of these optimisation functions inner-working. Whereas
-\emph{gridsearch} locates a minimum by creating a grid of parameter
-values, \emph{simplex} finds a minimum from a given starting
-value. Hence the search is faster (though less exhaustive) using
-\emph{simplex}
+that the csa+simplex technique is faster at converging in the search
+space of $\gamma$ and $\sigma^2$ than ds+gridsearch.
 
-The global optimisation algorithm coupled simulated annealing (csa)
-converges to a minimum faster than the alternative randomized directed
-search (ds) algorithm.
+As mentioned in the previous assignment, although the formulation of
+the SVM problem is indeed convex, we are faced here with a problem of
+hyperparameter selection, which is non-convex, and multiple local
+minima are thus possible. 
+
+The technique \emph{csa} and \emph{ds} are global optimization
+techniques that can help with the search (though without garantees of
+locating a global minimum). In a first step, those techniques will act
+to select in the landscape a place to start the search, which is then
+finalized using a \emph{simplex} approach, or a pre-defined
+\emph{searchgrid}. This explains the significant variability in the
+returned \emph{optimized} parameters, and in the speed of
+convergence. Whereas \emph{gridsearch} locates a minimum using a grid
+of parameter values, \emph{simplex} finds a minimum from a given
+starting value by different types of movement (so-called
+reflection/expansion/contraction). Hence the search is faster (though
+less exhaustive) using \emph{simplex}
 
 \begin{table}[H]
   \centering
@@ -290,15 +311,14 @@ probabilistic setting is related to the inference of the parameters,
 critical to building a coherent SVM model. As seen before, one way to
 deal with their estimation is via the use of a validation set. Here,
 we will see that the parameters can be deduced through the application
-of the Bayes rule within a hierarchical model. Here we will work with
-a RBF kernel function, hence we will have 3 levels of inference.
+of the Bayes rule within a hierarchical model without the use of a
+validation set. We will work with a RBF kernel function, and thus we
+will have 3 levels of inference.
 
 Using the same dataset as previously (sum of cosines), we can build
 our model using the \emph{bay\_optimize} function. Note that the
 examples in the assignment work on the training set, but there is no
-real need to limit them. Within this bayesian framework, we can
-estimate all the parameters without the need to check them through
-validation sets. 
+real need to limit them. 
 
 \begin{lstlisting}
 [~,alpha,b] = bay_optimize({X,Y,'f',gam,sig2}, 1);
@@ -309,11 +329,11 @@ sig2e = bay_errorbar({X,Y,'f',gam,sig2},'figure');
 
 The last line of code produces the figure \ref{fig:sumcos_bay1} on
 which it is possible to visualize at least 2 key things. Firstly, that
-the modelling performed very well, and secondly, that it is possible
-to estimate the confidence interval of our regression in a
-straightforward manner.
+the function estimation performed indeed very well, and secondly, that
+it is possible to estimate the confidence interval of our regression.
 
 \begin{figure}[H]
+  \vspace{-20pt}
     \centering
     \includegraphics[scale=.40]{sumcos_bay1.pdf}
     \caption{Bayesian parameter estimation and resulting model with error bars}
@@ -324,12 +344,23 @@ A good way to visualize the dependence between the three levels of
 inference of our model is to realize the connection that each level
 has with the next one. Indeed, the so-called evidence bit of the bayes
 rule of level 1 corresponds to the likelihood bit of level 2, whose
-evidence is itself the likelihood of level 3.
+evidence is itself the likelihood of level 3. As illustrated
+\footnote{J.Suykens, Support Vector Machines: Methods and Applications
+chapter 4. Fig 4.1}:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=.46]{3level_bayesian.pdf}
+    \label{fig:3level_bay1}
+\end{figure}
+
 
 The next figure \ref{fig:bayes_iris} reports the results from the
 classification of the iris dataset. For this, the function
 \emph{bay\_modoutClass} was used with an array of different
-$\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$
+$\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$. The
+colors can be interpreted as the probabilities of belonging to a given
+class.
 
 \begin{figure}[H]
     \centering
@@ -338,7 +369,38 @@ $\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$
     \label{fig:bayes_iris}
 \end{figure}
 
+The bayesian framework also enables the selection of the most relevant
+inputs by automatic relevance determination (ARD). For this toy
+dataset, it is possible to obtain it as such:
+
+\begin{lstlisting}
+X = 10.*rand(100,3)-3;
+Y = cos(X(:,1)) + cos(2*(X(:,1))) + 0.3.*randn(100,1);
+[selected, ranking] = bay_lssvmARD({X,Y,'class',gam,sig2});
+
+>> ans =
+SELECTED INPUT(S) ('discrete'): [1]
+\end{lstlisting}
+
+It should be possible to determine the best selection of inputs
+similarly by doing crossvalidation using models with all combinations
+of variables and estimate the test MSE. Note however that this is not
+scalable as the combination explodes with the number of variables
+O($2^p$). There may be a way to do something similar to variable
+selection found in linear models (forward/backward selection).
+
 \section{Robust regression}
+
+Robust regression is an important set of techniques to deal with noisy
+data that contains outliers. The figure \ref{fig:robust_ouliers} shows
+what can happen when outliers are introduced. On the left-hand side,
+we have a model that performs reasonably well at function
+estimation. On the right-hand side, the same dataset has been
+perturbed by the introduction of 6 outliers, and important shifts in
+the function estimation ensue. The LS-SVM framework comes with a serie
+of robust weighting function that can deal with outliers, as shown on
+figure \ref{fig:bayes_robust}. As can be observed from the figure, all
+methods return very similar function estimation.
 
 \begin{figure}[H]
     \centering
@@ -354,9 +416,13 @@ $\gamma \in \{1,10,100\}$ and $\sigma^2 \in \{0.01,0.1, 1\}$
     \label{fig:bayes_robust}
 \end{figure}
 
-\section{Applications}
+\newpage
+The mean absolute error (MAE) is prefered over the classical mean
+squared error (MSE) because of its ability to deal with outliers
+better. Indeed, the MAE gives less importance to the points that are
+further away from the mean than MSE.
 
-\subsection{Time-series Prediction}
+\section{Applications: Santa-Fe dataset}
 
 The dataset we work with in this last section represents a time serie
 collected from an experiment with a laser
@@ -413,18 +479,10 @@ Zpt = predict({X, Y, 'f', gam, sig2},Ztest(1:order), horizon);
     \label{fig:santa_prediction}
 \end{figure}
 
-\subsection{Santa Fe Laser Dataset}
+In light of the previous results, it would seem that an order of 60
+leads to better results than the suggested 50. However, one can wonder
+whether it is possible to obtain even better prediction. For lack of
+time, I did not investigate this further, but I will try to bring an
+update for the examination.
 
-In light of the previous results, one can wonder whether it is
-possible to obtain even better prediction using approaches seen
-previously. In this section, inspired by the ESAT tutorial, I show
-that indeed it is possible to introduce a refinement through the
-automatic relevance determination.
-
-Note that there is a significant computational cost associated to the
-method (as implemented through the function \emph{bay\_lssvmARD}). The
-run took over half an hour to complete on my laptop. The previous
-method returned almost immediately.
-
-\bibliographystyle{ieeetr} \bibliography{bib-db}
 \end{document}
