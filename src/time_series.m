@@ -49,30 +49,3 @@ subplot(1,2,2);
 plot([Ztest(order+1:end) Zpt]);
 
 export_fig('santafe_prediction.pdf');
-
-% [Z, settingsMAPMINMAX]= mapminmax(Z')
-% [Z, settingsMAPSTD] = mapstd(Z)
-% Z=Z';
-% X = Z(:, 1);
-% Xt = Ztest(:, 1);
-% lag = 59; 
-% Xu = windowize(Z,1:lag+1);
-% Xtra = Xu(1:end-lag,1:lag);
-% %training set
-% Ytra = Xu(1:end-lag,end);
-% Xs=Z(end-lag+1:end,1);
-% %starting point for iterative prediction
-% [gam, sig2]=tunelssvm({Xtra,Ytra,'f',[],[],'RBF_kernel'},'simplex','crossvalidatelssvm',{10,'mae'});
-% [alpha,b] = trainlssvm({Xtra,Ytra,'f',gam,sig2,'RBF_kernel'});
-% %predict
-% prediction = predict({Xtra,Ytra,'f',gam,sig2,'RBF_kernel'},Xs,200);
-% prediction = mapstd('reverse', prediction, settingsMAPSTD);
-% prediction1 = mapminmax.reverse(prediction, settingsMAPMINMAX);
-% figure('Color', [1 1 1 ]);
-% subplot(1,2,2);
-% plot([prediction1 Xt(1:200)]);
-% legend('prediction', 'target');
-% mse = mse(prediction1-Xt(1:200));
-% mse_lssvm = sum((prediction1 - Xt(1:200)).^2) / numel(Xt(1:200));
-
-

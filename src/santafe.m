@@ -43,6 +43,4 @@ prediction1 = mapminmax.reverse(prediction, settingsMAPMINMAX);
 
 figure('Color', [1 1 1]);
 plot([prediction1 Xt(1:200)]);
-% legend('prediction', 'target');
-% mse = mse(prediction1-Xt(1:200));
-% mse_lssvm = sum((prediction1 - Xt(1:200)).^2) / numel(Xt(1:200));
+
