@@ -1,4 +1,8 @@
-# LS-SVM
+* LS-SVM
 
 resources available here: http://www.esat.kuleuven.be/sista/lssvmlab/
+
+* Export fig
+
+Available here: https://github.com/altmany/export_fig
 
