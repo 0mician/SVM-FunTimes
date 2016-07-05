@@ -4,5 +4,5 @@ Using least squares support vector machine (LS-SVM) for function estimation and 
 
 # Details
 
-See report/report.pdf
+[See report](report/report.pdf)
 
